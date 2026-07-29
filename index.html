@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital do Pingo 🐧</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --azul: #1A73E8;
+      --azul-escuro: #0D47A1;
+      --azul-claro: #E3F2FD;
+      --azul-medio: #90CAF9;
+      --vermelho: #E53935;
+      --vermelho-claro: #FFCDD2;
+      --branco: #FFFFFF;
+      --cinza: #F5F7FA;
+      --texto: #1E293B;
+      --sombra: 0 8px 24px rgba(26, 115, 232, 0.12);
+      --raio: 18px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Nunito', system-ui, sans-serif;
+      background: linear-gradient(160deg, #E3F2FD 0%, #F0F7FF 40%, #FFF5F5 100%);
+      color: var(--texto);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ========== TELAS ========== */
+    .tela { display: none; min-height: 100vh; }
+    .tela.ativa { display: block; }
+
+    /* ========== TOPBAR (comum) ========== */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: linear-gradient(90deg, var(--azul-escuro), var(--azul));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(13, 71, 161, 0.35);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pinguim {
+      font-size: 34px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+      animation: pinguim-bounce 2.8s ease-in-out infinite;
+    }
+
+    @keyframes pinguim-bounce {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50% { transform: translateY(-6px) rotate(3deg); }
+    }
+
+    .logo-texto { display: flex; flex-direction: column; }
+    .logo-titulo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: white;
+    }
+    .logo-sub {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.85);
+      font-weight: 600;
+    }
+
+    .menu-btn {
+      width: 44px; height: 44px;
+      border: none;
+      background: rgba(255,255,255,0.18);
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .menu-btn span {
+      display: block;
+      width: 20px; height: 2.5px;
+      background: white;
+      border-radius: 3px;
+      transition: 0.3s;
+    }
+    .menu-btn.ativo span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+    .menu-btn.ativo span:nth-child(2) { opacity: 0; }
+    .menu-btn.ativo span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+    /* Sidebar */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(13, 71, 161, 0.35);
+      z-index: 900;
+      opacity: 0; visibility: hidden;
+      transition: 0.3s;
+    }
+    .overlay.aberto { opacity: 1; visibility: visible; }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: -280px;
+      width: 280px; height: 100%;
+      background: white;
+      z-index: 950;
+      transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 8px 0 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      padding-top: 74px;
+    }
+    .sidebar.aberto { left: 0; }
+
+    .sidebar-header {
+      padding: 0 18px 16px;
+      border-bottom: 1px solid #E8EEF5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-menu { list-style: none; padding: 14px 12px; flex: 1; overflow-y: auto; }
+    .nav-item { margin-bottom: 6px; }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      text-decoration: none;
+      color: var(--texto);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .nav-link:hover { background: var(--azul-claro); color: var(--azul); }
+    .nav-link.ativo {
+      background: linear-gradient(90deg, var(--azul), #42A5F5);
+      color: white;
+      box-shadow: 0 4px 14px rgba(26, 115, 232, 0.35);
+    }
+    .nav-link .icone { font-size: 1.3rem; width: 26px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 14px;
+      border-top: 1px solid #E8EEF5;
+      text-align: center;
+      font-size: 0.72rem;
+      color: #94A3B8;
+    }
+
+    /* ========== ÁREA PACIENTE ========== */
+    .paciente-main {
+      margin-top: 64px;
+      padding: 22px 16px 40px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .intro { text-align: center; margin-bottom: 22px; }
+    .intro h2 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.45rem;
+      color: var(--azul-escuro);
+      margin-bottom: 6px;
+    }
+    .intro p { color: #64748B; font-size: 0.95rem; }
+
+    .card {
+      background: white;
+      border-radius: var(--raio);
+      padding: 20px;
+      box-shadow: var(--sombra);
+      margin-bottom: 16px;
+    }
+    .card-titulo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.1rem;
+      color: var(--azul-escuro);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-weight: 800;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      background: white;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--azul);
+    }
+
+    .tipo-opcoes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .tipo-btn {
+      padding: 13px 8px;
+      border: 2px solid #E2E8F0;
+      border-radius: 14px;
+      background: white;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      color: #475569;
+    }
+    .tipo-btn:hover { border-color: var(--azul-medio); background: var(--azul-claro); }
+    .tipo-btn.ativo {
+      border-color: var(--azul);
+      background: linear-gradient(135deg, var(--azul), #42A5F5);
+      color: white;
+      box-shadow: 0 5px 16px rgba(26, 115, 232, 0.3);
+    }
+    .tipo-btn.cirurgia.ativo {
+      background: linear-gradient(135deg, var(--vermelho), #EF5350);
+      border-color: var(--vermelho);
+      box-shadow: 0 5px 16px rgba(229, 57, 53, 0.3);
+    }
+    .tipo-btn span { display: block; font-size: 1.4rem; margin-bottom: 3px; }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+      gap: 7px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding: 10px;
+      background: var(--cinza);
+      border-radius: 14px;
+      border: 2px solid #E2E8F0;
+    }
+    .emoji-btn {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 2px solid transparent;
+      border-radius: 11px;
+      background: white;
+      font-size: 1.45rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emoji-btn:hover { transform: scale(1.1); background: var(--azul-claro); }
+    .emoji-btn.ativo {
+      border-color: var(--azul);
+      background: var(--azul);
+      box-shadow: 0 3px 10px rgba(26, 115, 232, 0.35);
+      transform: scale(1.08);
+    }
+
+    .emoji-selecionado {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: var(--azul-claro);
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .emoji-selecionado span:first-child { font-size: 1.7rem; }
+
+    .btn-whatsapp {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+      color: white;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 7px 22px rgba(37, 211, 102, 0.4);
+      transition: transform 0.2s;
+      margin-top: 6px;
+    }
+    .btn-whatsapp:hover { transform: translateY(-2px); }
+
+    .aviso {
+      background: linear-gradient(135deg, #E3F2FD, #FFF0F0);
+      border: 2px dashed var(--azul-medio);
+      border-radius: var(--raio);
+      padding: 14px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #475569;
+      margin-top: 16px;
+    }
+    .aviso strong { color: var(--azul); }
+
+    /* ========== LOGIN ========== */
+    .login-box {
+      max-width: 380px;
+      margin: 100px auto 40px;
+      background: white;
+      border-radius: 22px;
+      padding: 28px 22px;
+      box-shadow: var(--sombra);
+      text-align: center;
+    }
+    .login-box .pinguim { font-size: 52px; margin-bottom: 8px; }
+    .login-box h2 {
+      font-family: 'Fredoka', sans-serif;
+      color: var(--azul-escuro);
+      margin-bottom: 6px;
+    }
+    .login-box p { color: #64748B; font-size: 0.9rem; margin-bottom: 20px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 11px 18px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-azul { background: var(--azul); color: white; }
+    .btn-azul:hover { background: var(--azul-escuro); }
+    .btn-vermelho { background: var(--vermelho); color: white; }
+    .btn-vermelho:hover { background: #C62828; }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--azul);
+      color: var(--azul);
+    }
+    .btn-outline:hover { background: var(--azul-claro); }
+    .btn-full { width: 100%; justify-content: center; padding: 13px; }
+
+    .erro-login {
+      background: #FFEBEE;
+      color: #C62828;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    /* ========== SISTEMA FUNCIONÁRIOS ========== */
+    .sistema-main {
+      margin-top: 64px;
+      padding: 20px 14px 40px;
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .pagina { display: none; animation: fadeIn 0.3s ease; }
+    .pagina.ativa { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .titulo-pagina {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--azul-escuro);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .subtitulo { color: #64748B; font-size: 0.9rem; margin-bottom: 18px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: var(--raio);
+      padding: 16px 12px;
+      box-shadow: var(--sombra);
+      text-align: center;
+      border: 2px solid transparent;
+    }
+    .stat-card.azul { border-color: var(--azul-medio); }
+    .stat-card.vermelho { border-color: var(--vermelho-claro); }
+    .stat-card.verde { border-color: #A5D6A7; }
+    .stat-numero {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--azul);
+    }
+    .stat-card.vermelho .stat-numero { color: var(--vermelho); }
+    .stat-card.verde .stat-numero { color: #2E7D32; }
+    .stat-label { font-size: 0.78rem; color: #64748B; font-weight: 700; margin-top: 2px; }
+
+    .lista { display: flex; flex-direction: column; gap: 10px; }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--cinza);
+      border-radius: 14px;
+      transition: background 0.2s;
+    }
+    .item:hover { background: var(--azul-claro); }
+    .item-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--azul-medio), var(--azul));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.45rem;
+      flex-shrink: 0;
+    }
+    .item-info { flex: 1; min-width: 0; }
+    .item-nome { font-weight: 800; font-size: 0.95rem; }
+    .item-desc { font-size: 0.8rem; color: #64748B; margin-top: 1px; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .badge.consulta { background: #BBDEFB; color: #1565C0; }
+    .badge.cirurgia { background: #FFCDD2; color: #C62828; }
+    .badge.ok { background: #C8E6C9; color: #2E7D32; }
+    .badge.espera { background: #FFF9C4; color: #F57F17; }
+    .badge.urgente { background: #FFCDD2; color: #B71C1C; animation: pulsar 1.5s infinite; }
+
+    @keyframes pulsar {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .tab {
+      padding: 9px 16px;
+      border-radius: 30px;
+      border: none;
+      background: white;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #64748B;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .tab.ativa {
+      background: var(--azul);
+      color: white;
+      box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+    }
+    .tab-conteudo { display: none; }
+    .tab-conteudo.ativo { display: block; }
+
+    .lista-vazia {
+      text-align: center;
+      color: #94A3B8;
+      padding: 18px;
+      font-size: 0.88rem;
+    }
+
+    /* Painel de senhas */
+    .painel-senha {
+      background: linear-gradient(160deg, #0D47A1, #1565C0, #1A73E8);
+      border-radius: 22px;
+      padding: 24px 18px 28px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 12px 36px rgba(13, 71, 161, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .painel-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .painel-numero {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 5rem;
+      font-weight: 700;
+      line-height: 1;
+      text-shadow: 0 4px 18px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 1;
+    }
+    .painel-numero.pulse { animation: numeroPulse 0.6s ease; }
+    @keyframes numeroPulse {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+    .painel-emoji { font-size: 2.8rem; margin: 10px 0 6px; position: relative; z-index: 1; }
+    .painel-nome {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.3rem;
+      position: relative;
+      z-index: 1;
+    }
+    .painel-tipo { font-size: 0.95rem; opacity: 0.9; margin-top: 3px; position: relative; z-index: 1; }
+    .painel-local {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.18);
+      display: inline-block;
+      padding: 7px 16px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(13, 71, 161, 0.55);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0; visibility: hidden;
+      transition: 0.3s;
+    }
+    .modal-overlay.aberto { opacity: 1; visibility: visible; }
+    .modal-box {
+      background: white;
+      border-radius: 22px;
+      padding: 26px 22px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      transform: scale(0.85);
+      transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal-overlay.aberto .modal-box { transform: scale(1); }
+    .modal-emoji { font-size: 4rem; margin-bottom: 10px; animation: pinguim-bounce 1.2s ease-in-out infinite; }
+    .modal-titulo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.3rem;
+      color: var(--azul-escuro);
+      margin-bottom: 6px;
+    }
+    .modal-texto { font-size: 0.95rem; color: #475569; margin-bottom: 4px; }
+    .modal-horario { font-weight: 800; color: var(--vermelho); font-size: 1.05rem; margin: 10px 0 16px; }
+    .modal-box .btn { width: 100%; justify-content: center; padding: 13px; }
+
+    .btn-voltar {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       TELA 1: PACIENTE (público)
+  ============================================================ -->
+  <div class="tela ativa" id="telaPaciente">
+    <header class="topbar">
+      <div class="logo-area">
+        <div class="pinguim">🐧</div>
+        <div class="logo-texto">
+          <span class="logo-titulo">Hospital do Pingo</span>
+          <span class="logo-sub">Cuidando de pelúcias com amor</span>
+        </div>
+      </div>
+      <button class="menu-btn" id="menuPaciente" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <div class="overlay" id="overlayPaciente"></div>
+    <aside class="sidebar" id="sidebarPaciente">
+      <div class="sidebar-header">
+        <span class="pinguim" style="font-size:28px;animation:none">🐧</span>
+        <div>
+          <strong style="color:var(--azul-escuro)">Menu</strong><br>
+          <small style="color:#94A3B8">Hospital do Pingo</small>
+        </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <button class="nav-link ativo" onclick="mostrarFormPaciente()">
+            <span class="icone">📅</span> Marcar Consulta / Cirurgia
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" onclick="irParaLogin()">
+            <span class="icone">🔐</span> Sistema de Funcionários
+          </button>
+        </li>
+      </ul>
+      <div class="sidebar-footer">🐧 Hospital de pelúcias • Só de brincadeira</div>
+    </aside>
+
+    <main class="paciente-main">
+      <div class="intro">
+        <h2>Agende o atendimento</h2>
+        <p>Marque consulta ou cirurgia pro seu bichinho.<br>A gente recebe tudo no WhatsApp!</p>
+      </div>
+
+      <div class="card">
+        <h2 class="card-titulo">📋 Dados do atendimento</h2>
+        <form id="formAgendamento" onsubmit="enviarWhatsApp(event)">
+          <div class="form-group">
+            <label>O que você quer marcar?</label>
+            <div class="tipo-opcoes">
+              <button type="button" class="tipo-btn ativo" data-tipo="Consulta" onclick="escolherTipo(this)">
+                <span>📅</span> Consulta
+              </button>
+              <button type="button" class="tipo-btn cirurgia" data-tipo="Cirurgia" onclick="escolherTipo(this)">
+                <span>🩺</span> Cirurgia
+              </button>
+            </div>
+            <input type="hidden" id="tipoAtendimento" value="Consulta">
+          </div>
+
+          <div class="form-group">
+            <label>Escolha o bichinho (emoji)</label>
+            <div class="emoji-grid" id="emojiGrid"></div>
+            <div class="emoji-selecionado">
+              <span id="emojiAtual">🐻</span>
+              <span id="emojiNome">Ursinho selecionado</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Nome do paciente (pelúcia)</label>
+            <input type="text" id="nomePelucia" placeholder="Ex: Ursinho Mel..." required>
+          </div>
+          <div class="form-group">
+            <label>Seu nome (responsável)</label>
+            <input type="text" id="nomeResponsavel" placeholder="Como a gente te chama?" required>
+          </div>
+          <div class="form-group">
+            <label>Seu WhatsApp (opcional)</label>
+            <input type="tel" id="telefone" placeholder="(11) 99999-9999">
+          </div>
+          <div class="form-group">
+            <label>Data preferida</label>
+            <input type="date" id="dataPreferida" required>
+          </div>
+          <div class="form-group">
+            <label>Horário preferido</label>
+            <input type="time" id="horaPreferida" value="14:00" required>
+          </div>
+          <div class="form-group">
+            <label>O que aconteceu? (motivo)</label>
+            <textarea id="motivo" placeholder="Ex: costura na orelha, olho solto..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Observações (opcional)</label>
+            <textarea id="observacoes" placeholder="Alguma informação a mais?"></textarea>
+          </div>
+
+          <button type="submit" class="btn-whatsapp">
+            💬 Enviar no WhatsApp
+          </button>
+        </form>
+      </div>
+
+      <div class="aviso">
+        🐧 <strong>Hospital do Pingo</strong> — hospital de mentirinha de pelúcias.<br>
+        Quando clicar em enviar, o WhatsApp abre com a mensagem pronta.
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================================================
+       TELA 2: LOGIN
+  ============================================================ -->
+  <div class="tela" id="telaLogin">
+    <header class="topbar">
+      <div class="logo-area">
+        <div class="pinguim">🐧</div>
+        <div class="logo-texto">
+          <span class="logo-titulo">Hospital do Pingo</span>
+          <span class="logo-sub">Área dos funcionários</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="login-box">
+      <div class="pinguim">🐧</div>
+      <h2>Entrar no Sistema</h2>
+      <p>Digite usuário e senha de funcionário</p>
+
+      <div class="erro-login" id="erroLogin">Usuário ou senha incorretos 🐧</div>
+
+      <div class="form-group" style="text-align:left">
+        <label>Usuário</label>
+        <input type="text" id="loginUser" placeholder="usuário" autocomplete="username">
+      </div>
+      <div class="form-group" style="text-align:left">
+        <label>Senha</label>
+        <input type="password" id="loginSenha" placeholder="senha" autocomplete="current-password">
+      </div>
+
+      <button class="btn btn-azul btn-full" onclick="fazerLogin()" style="margin-top:8px">
+        Entrar no sistema
+      </button>
+      <button class="btn btn-outline btn-full" onclick="voltarPaciente()" style="margin-top:10px">
+        ← Voltar para o início
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TELA 3: SISTEMA DOS FUNCIONÁRIOS
+  ============================================================ -->
+  <div class="tela" id="telaSistema">
+    <header class="topbar">
+      <div class="logo-area">
+        <div class="pinguim">🐧</div>
+        <div class="logo-texto">
+          <span class="logo-titulo">Hospital do Pingo</span>
+          <span class="logo-sub">Sistema • Funcionários</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-voltar" onclick="voltarPaciente()">← Início</button>
+        <button class="menu-btn" id="menuSistema" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="overlay" id="overlaySistema"></div>
+    <aside class="sidebar" id="sidebarSistema">
+      <div class="sidebar-header">
+        <span class="pinguim" style="font-size:28px;animation:none">🐧</span>
+        <div>
+          <strong style="color:var(--azul-escuro)">Menu do Sistema</strong><br>
+          <small style="color:#94A3B8">Funcionários</small>
+        </div>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item"><button class="nav-link ativo" data-pagina="inicio"><span class="icone">🏠</span> Início</button></li>
+        <li class="nav-item"><button class="nav-link" data-pagina="pacientes"><span class="icone">🧸</span> Pacientes</button></li>
+        <li class="nav-item"><button class="nav-link" data-pagina="consultas"><span class="icone">📅</span> Consultas</button></li>
+        <li class="nav-item"><button class="nav-link" data-pagina="cirurgias"><span class="icone">🩺</span> Cirurgias</button></li>
+        <li class="nav-item"><button class="nav-link" data-pagina="emergencia"><span class="icone">🚨</span> Emergência</button></li>
+        <li class="nav-item"><button class="nav-link" data-pagina="farmacia"><span class="icone">💊</span> Farmácia</button></li>
+        <li class="nav-item"><button class="nav-link" data-pagina="equipe"><span class="icone">👨‍⚕️</span> Equipe</button></li>
+        <li class="nav-item"><button class="nav-link" data-pagina="senhas"><span class="icone">🔢</span> Painel de Senhas</button></li>
+        <li class="nav-item" style="margin-top:12px">
+          <button class="nav-link" onclick="voltarPaciente()" style="color:var(--vermelho)">
+            <span class="icone">↩️</span> Voltar para o início
+          </button>
+        </li>
+      </ul>
+      <div class="sidebar-footer">🐧 Sistema v1.0 • Só de brincadeira</div>
+    </aside>
+
+    <main class="sistema-main">
+      <!-- INÍCIO -->
+      <section class="pagina ativa" id="inicio">
+        <h1 class="titulo-pagina">🏠 Painel do Hospital</h1>
+        <p class="subtitulo">Bem-vindo ao sistema interno do Hospital do Pingo!</p>
+        <div class="stats">
+          <div class="stat-card azul"><div class="stat-numero" id="statPacientes">0</div><div class="stat-label">Pacientes</div></div>
+          <div class="stat-card vermelho"><div class="stat-numero" id="statCirurgias">0</div><div class="stat-label">Cirurgias</div></div>
+          <div class="stat-card verde"><div class="stat-numero" id="statConsultas">0</div><div class="stat-label">Consultas</div></div>
+          <div class="stat-card azul"><div class="stat-numero">7</div><div class="stat-label">Médicos</div></div>
+        </div>
+        <div class="card">
+          <h2 class="card-titulo">⭐ Próximos atendimentos</h2>
+          <div class="lista" id="listaProximos">
+            <div class="lista-vazia">Nenhum atendimento agendado ainda.</div>
+          </div>
+        </div>
+        <div class="aviso" style="margin-top:16px">
+          🐧 Sistema interno — só para funcionários de pelúcia.
+        </div>
+      </section>
+
+      <!-- PACIENTES -->
+      <section class="pagina" id="pacientes">
+        <h1 class="titulo-pagina">🧸 Pacientes</h1>
+        <p class="subtitulo">Lista de bichinhos em atendimento.</p>
+        <div class="card">
+          <div class="lista" id="listaPacientes">
+            <div class="lista-vazia">Nenhum paciente cadastrado ainda.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONSULTAS -->
+      <section class="pagina" id="consultas">
+        <h1 class="titulo-pagina">📅 Consultas</h1>
+        <p class="subtitulo">Agenda de consultas.</p>
+        <div class="tabs">
+          <button class="tab ativa" data-tab="consultas-agendadas">Agendadas</button>
+          <button class="tab" data-tab="consultas-realizadas">Realizadas</button>
+        </div>
+        <div class="tab-conteudo ativo" id="tab-consultas-agendadas">
+          <div class="card"><div class="lista" id="listaConsultas"><div class="lista-vazia">Nenhuma consulta agendada.</div></div></div>
+        </div>
+        <div class="tab-conteudo" id="tab-consultas-realizadas">
+          <div class="card"><div class="lista" id="listaConsultasRealizadas"><div class="lista-vazia">Nenhuma consulta realizada.</div></div></div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <h2 class="card-titulo">➕ Nova Consulta (sistema)</h2>
+          <form class="form-rapido" onsubmit="event.preventDefault(); marcarConsultaSistema();">
+            <div class="form-group">
+              <label>Emoji</label>
+              <input type="text" id="sConsultaEmoji" value="🐻" maxlength="4" style="font-size:1.4rem">
+            </div>
+            <div class="form-group">
+              <label>Nome do paciente</label>
+              <input type="text" id="sConsultaNome" required placeholder="Ursinho Mel">
+            </div>
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="sConsultaTipo">
+                <option>Check-up geral</option>
+                <option>Costura de orelha</option>
+                <option>Troca de olho</option>
+                <option>Ajuste de enchimento</option>
+                <option>Retorno</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Horário</label>
+              <input type="time" id="sConsultaHora" value="15:00" required>
+            </div>
+            <div class="form-group">
+              <label>Número da senha</label>
+              <input type="number" id="sConsultaSenha" placeholder="42" min="1" required>
+            </div>
+            <button type="submit" class="btn btn-azul">Marcar Consulta</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- CIRURGIAS -->
+      <section class="pagina" id="cirurgias">
+        <h1 class="titulo-pagina">🩺 Cirurgias</h1>
+        <p class="subtitulo">Centro cirúrgico de pelúcias.</p>
+        <div class="tabs">
+          <button class="tab ativa" data-tab="hoje">Hoje</button>
+          <button class="tab" data-tab="agendadas">Agendadas</button>
+          <button class="tab" data-tab="realizadas">Realizadas</button>
+        </div>
+        <div class="tab-conteudo ativo" id="tab-hoje">
+          <div class="card"><div class="lista" id="listaCirurgiasHoje"><div class="lista-vazia">Nenhuma cirurgia para hoje.</div></div></div>
+        </div>
+        <div class="tab-conteudo" id="tab-agendadas">
+          <div class="card"><div class="lista" id="listaCirurgiasAgendadas"><div class="lista-vazia">Nenhuma cirurgia agendada.</div></div></div>
+        </div>
+        <div class="tab-conteudo" id="tab-realizadas">
+          <div class="card"><div class="lista" id="listaCirurgiasRealizadas"><div class="lista-vazia">Nenhuma cirurgia realizada.</div></div></div>
+        </div>
+
+        <div class="card" style="margin-top:14px;border:2px solid var(--vermelho-claro)">
+          <h2 class="card-titulo" style="color:var(--vermelho)">➕ Nova Cirurgia (sistema)</h2>
+          <form onsubmit="event.preventDefault(); marcarCirurgiaSistema();">
+            <div class="form-group">
+              <label>Emoji</label>
+              <input type="text" id="sCirurgiaEmoji" value="🐰" maxlength="4" style="font-size:1.4rem">
+            </div>
+            <div class="form-group">
+              <label>Nome do paciente</label>
+              <input type="text" id="sCirurgiaNome" required>
+            </div>
+            <div class="form-group">
+              <label>Tipo de cirurgia</label>
+              <select id="sCirurgiaTipo">
+                <option>Reconstrução de orelha</option>
+                <option>Costura de patinha</option>
+                <option>Troca de olho de botão</option>
+                <option>Alinhamento de chifre</option>
+                <option>Reforço de costura</option>
+                <option>Outra</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Data</label>
+              <input type="date" id="sCirurgiaData" required>
+            </div>
+            <div class="form-group">
+              <label>Horário</label>
+              <input type="time" id="sCirurgiaHora" value="10:00" required>
+            </div>
+            <div class="form-group">
+              <label>Sala</label>
+              <select id="sCirurgiaSala">
+                <option>Sala 1</option>
+                <option>Sala 2</option>
+                <option>Sala 3</option>
+                <option>Sala VIP do Pingo</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Número da senha</label>
+              <input type="number" id="sCirurgiaSenha" placeholder="15" min="1" required>
+            </div>
+            <button type="submit" class="btn btn-vermelho">Agendar Cirurgia</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- EMERGÊNCIA -->
+      <section class="pagina" id="emergencia">
+        <h1 class="titulo-pagina">🚨 Emergência</h1>
+        <p class="subtitulo">Casos urgentes de pelúcias.</p>
+        <div class="card" style="border:2px solid var(--vermelho-claro)">
+          <h2 class="card-titulo" style="color:var(--vermelho)">Casos em andamento</h2>
+          <div class="lista">
+            <div class="item">
+              <div class="item-avatar">🦒</div>
+              <div class="item-info">
+                <div class="item-nome">Girafa Pescoço</div>
+                <div class="item-desc">Enchimento vazando • Chegou há pouco</div>
+              </div>
+              <span class="badge urgente">Urgente</span>
+            </div>
+            <div class="item">
+              <div class="item-avatar">🦖</div>
+              <div class="item-info">
+                <div class="item-nome">Dino Rex</div>
+                <div class="item-desc">Braço quase caindo</div>
+              </div>
+              <span class="badge urgente">Urgente</span>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-vermelho" onclick="alert('Equipe de emergência acionada! 🚨🐧')">Chamar Equipe 🚨</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- FARMÁCIA -->
+      <section class="pagina" id="farmacia">
+        <h1 class="titulo-pagina">💊 Farmácia do Pingo</h1>
+        <p class="subtitulo">Materiais especiais para pelúcias.</p>
+        <div class="stats">
+          <div class="stat-card azul"><div class="stat-numero">142</div><div class="stat-label">Linhas</div></div>
+          <div class="stat-card verde"><div class="stat-numero">89</div><div class="stat-label">Botões</div></div>
+          <div class="stat-card vermelho"><div class="stat-numero">36</div><div class="stat-label">Enchimento</div></div>
+        </div>
+        <div class="card">
+          <div class="lista">
+            <div class="item"><div class="item-avatar">🧵</div><div class="item-info"><div class="item-nome">Linha de costura premium</div><div class="item-desc">Azul, vermelho, bege, preto</div></div><span class="badge ok">Estoque</span></div>
+            <div class="item"><div class="item-avatar">🔘</div><div class="item-info"><div class="item-nome">Olhos de botão</div><div class="item-desc">P, M e G</div></div><span class="badge ok">Estoque</span></div>
+            <div class="item"><div class="item-avatar">☁️</div><div class="item-info"><div class="item-nome">Enchimento macio</div><div class="item-desc">Fibra siliconada</div></div><span class="badge espera">Baixo</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EQUIPE -->
+      <section class="pagina" id="equipe">
+        <h1 class="titulo-pagina">👨‍⚕️ Equipe</h1>
+        <p class="subtitulo">Médicos e enfermeiros de pelúcia.</p>
+        <div class="card">
+          <div class="lista">
+            <div class="item"><div class="item-avatar">🐧</div><div class="item-info"><div class="item-nome">Dr. Pingo</div><div class="item-desc">Diretor Geral</div></div><span class="badge ok">Plantão</span></div>
+            <div class="item"><div class="item-avatar">🐼</div><div class="item-info"><div class="item-nome">Dr. Bamboo</div><div class="item-desc">Cirurgião-chefe</div></div><span class="badge ok">Plantão</span></div>
+            <div class="item"><div class="item-avatar">🐰</div><div class="item-info"><div class="item-nome">Dra. Luna</div><div class="item-desc">Pediatra de pelúcias</div></div><span class="badge ok">Plantão</span></div>
+            <div class="item"><div class="item-avatar">🦊</div><div class="item-info"><div class="item-nome">Dra. Foxy</div><div class="item-desc">Oftalmologista (olhos de botão)</div></div><span class="badge ok">Plantão</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAINEL DE SENHAS -->
+      <section class="pagina" id="senhas">
+        <h1 class="titulo-pagina">🔢 Painel de Senhas</h1>
+        <p class="subtitulo">Chamada de pacientes estilo hospital.</p>
+        <div class="painel-senha" id="painelSenha">
+          <div class="painel-header">
+            <span style="font-size:24px">🐧</span>
+            <span>Hospital do Pingo</span>
+          </div>
+          <div class="painel-numero" id="painelNumero">--</div>
+          <div class="painel-emoji" id="painelEmoji">🧸</div>
+          <div class="painel-nome" id="painelNome">Aguardando chamada...</div>
+          <div class="painel-tipo" id="painelTipo">—</div>
+          <div class="painel-local" id="painelLocal"></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h2 class="card-titulo">📋 Últimas chamadas</h2>
+          <div class="lista" id="historicoSenhas">
+            <div class="lista-vazia">Nenhuma senha chamada ainda.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal de chamada -->
+  <div class="modal-overlay" id="modalChamada">
+    <div class="modal-box">
+      <div class="modal-emoji" id="modalEmoji">🐻</div>
+      <div class="modal-titulo" id="modalTitulo">Hora da consulta!</div>
+      <div class="modal-texto" id="modalNome">Ursinho Mel</div>
+      <div class="modal-texto" id="modalTipo">Check-up</div>
+      <div class="modal-horario" id="modalHorario">14:30</div>
+      <button class="btn btn-azul" onclick="fecharModal()">Entendi! 🐧</button>
+    </div>
+  </div>
+
+  <script>
+    // =====================================================
+    // CONFIGURAÇÕES — MUDE AQUI
+    // =====================================================
+    const NUMERO_WHATSAPP = "5511991205419"; // ← SEU NÚMERO (55 + DDD + número)
+
+    // Login dos funcionários (pode mudar)
+    const USUARIO_CORRETO = "rafael";
+    const SENHA_CORRETA = "182122";
+
+
+    // ========== ANIMAIS ==========
+    const TODOS_ANIMAIS = [
+      "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁",
+      "🐮","🐷","🐽","🐸","🐵","🙈","🙉","🙊","🐒","🐔","🐧","🐦",
+      "🐤","🐣","🐥","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝",
+      "🪱","🐛","🦋","🐌","🐞","🐜","🪰","🪲","🪳","🦟","🦗","🕷",
+      "🦂","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🪼",
+      "🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍",
+      "🦧","🦣","🐘","🦛","🦏","🐪","🐫","🦒","🦘","🦬","🐃","🐂",
+      "🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐩","🦮","🐈",
+      "🐈‍⬛","🐓","🦃","🦚","🦜","🦢","🦩","🕊","🐇","🦝","🦨","🦡",
+      "🦫","🦦","🦥","🐁","🐀","🐿","🦔","🐉","🐲","🐾"
+    ];
+
+    let emojiEscolhido = "🐻";
+    let agenda = JSON.parse(localStorage.getItem("agendaPingo") || "[]");
+
+    // ========== INICIALIZAÇÃO ==========
+    document.addEventListener("DOMContentLoaded", () => {
+      // Emojis do paciente
+      const grid = document.getElementById("emojiGrid");
+      TODOS_ANIMAIS.forEach(e => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "emoji-btn" + (e === "🐻" ? " ativo" : "");
+        btn.textContent = e;
+        btn.onclick = () => {
+          document.querySelectorAll("#emojiGrid .emoji-btn").forEach(b => b.classList.remove("ativo"));
+          btn.classList.add("ativo");
+          emojiEscolhido = e;
+          document.getElementById("emojiAtual").textContent = e;
+          document.getElementById("emojiNome").textContent = "Bichinho selecionado";
+        };
+        grid.appendChild(btn);
+      });
+
+      // Datas
+      const hoje = new Date().toISOString().slice(0, 10);
+      document.getElementById("dataPreferida").min = hoje;
+      document.getElementById("dataPreferida").value = hoje;
+      const sData = document.getElementById("sCirurgiaData");
+      if (sData) { sData.min = hoje; sData.value = hoje; }
+
+      // Menus
+      setupMenu("menuPaciente", "sidebarPaciente", "overlayPaciente");
+      setupMenu("menuSistema", "sidebarSistema", "overlaySistema");
+
+      // Navegação sistema
+      document.querySelectorAll("#sidebarSistema .nav-link[data-pagina]").forEach(link => {
+        link.addEventListener("click", () => {
+          const id = link.dataset.pagina;
+          document.querySelectorAll("#sidebarSistema .nav-link").forEach(l => l.classList.remove("ativo"));
+          link.classList.add("ativo");
+          document.querySelectorAll("#telaSistema .pagina").forEach(p => p.classList.remove("ativa"));
+          document.getElementById(id).classList.add("ativa");
+          fecharSidebar("sidebarSistema", "overlaySistema", "menuSistema");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+
+      // Tabs
+      document.querySelectorAll(".tabs").forEach(container => {
+        const tabs = container.querySelectorAll(".tab");
+        const pai = container.closest(".pagina") || container.parentElement;
+        tabs.forEach(tab => {
+          tab.addEventListener("click", () => {
+            tabs.forEach(t => t.classList.remove("ativa"));
+            tab.classList.add("ativa");
+            pai.querySelectorAll(".tab-conteudo").forEach(c => {
+              c.classList.remove("ativo");
+              if (c.id === "tab-" + tab.dataset.tab) c.classList.add("ativo");
+            });
+          });
+        });
+      });
+
+      // Verificador de horário
+      setInterval(verificarHorarios, 10000);
+      setTimeout(verificarHorarios, 1500);
+    });
+
+    function setupMenu(btnId, sideId, overId) {
+      const btn = document.getElementById(btnId);
+      const side = document.getElementById(sideId);
+      const over = document.getElementById(overId);
+      if (!btn) return;
+      btn.onclick = () => {
+        btn.classList.toggle("ativo");
+        side.classList.toggle("aberto");
+        over.classList.toggle("aberto");
+      };
+      over.onclick = () => fecharSidebar(sideId, overId, btnId);
+    }
+
+    function fecharSidebar(sideId, overId, btnId) {
+      document.getElementById(sideId)?.classList.remove("aberto");
+      document.getElementById(overId)?.classList.remove("aberto");
+      document.getElementById(btnId)?.classList.remove("ativo");
+    }
+
+    // ========== NAVEGAÇÃO ENTRE TELAS ==========
+    function mostrarTela(id) {
+      document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
+      document.getElementById(id).classList.add("ativa");
+      window.scrollTo(0, 0);
+    }
+
+    function irParaLogin() {
+      fecharSidebar("sidebarPaciente", "overlayPaciente", "menuPaciente");
+      mostrarTela("telaLogin");
+      document.getElementById("loginUser").value = "";
+      document.getElementById("loginSenha").value = "";
+      document.getElementById("erroLogin").style.display = "none";
+    }
+
+    function voltarPaciente() {
+      fecharSidebar("sidebarSistema", "overlaySistema", "menuSistema");
+      mostrarTela("telaPaciente");
+    }
+
+    function mostrarFormPaciente() {
+      fecharSidebar("sidebarPaciente", "overlayPaciente", "menuPaciente");
+    }
+
+    function fazerLogin() {
+      const user = document.getElementById("loginUser").value.trim().toLowerCase();
+      const senha = document.getElementById("loginSenha").value;
+      if (user === USUARIO_CORRETO && senha === SENHA_CORRETA) {
+        mostrarTela("telaSistema");
+        // Ativa página início
+        document.querySelectorAll("#telaSistema .pagina").forEach(p => p.classList.remove("ativa"));
+        document.getElementById("inicio").classList.add("ativa");
+        document.querySelectorAll("#sidebarSistema .nav-link").forEach(l => l.classList.remove("ativo"));
+        document.querySelector('#sidebarSistema .nav-link[data-pagina="inicio"]')?.classList.add("ativo");
+      } else {
+        document.getElementById("erroLogin").style.display = "block";
+      }
+    }
+
+    // Enter no login
+    document.getElementById("loginSenha")?.addEventListener("keydown", e => {
+      if (e.key === "Enter") fazerLogin();
+    });
+
+    // ========== PACIENTE → WHATSAPP ==========
+    function escolherTipo(btn) {
+      document.querySelectorAll(".tipo-btn").forEach(b => b.classList.remove("ativo"));
+      btn.classList.add("ativo");
+      document.getElementById("tipoAtendimento").value = btn.dataset.tipo;
+    }
+
+    function enviarWhatsApp(e) {
+      e.preventDefault();
+      const tipo = document.getElementById("tipoAtendimento").value;
+      const nomePelucia = document.getElementById("nomePelucia").value.trim();
+      const nomeResponsavel = document.getElementById("nomeResponsavel").value.trim();
+      const telefone = document.getElementById("telefone").value.trim();
+      const data = document.getElementById("dataPreferida").value;
+      const hora = document.getElementById("horaPreferida").value;
+      const motivo = document.getElementById("motivo").value.trim();
+      const observacoes = document.getElementById("observacoes").value.trim();
+
+      if (!nomePelucia || !nomeResponsavel || !data || !hora) {
+        alert("Preencha os campos obrigatórios! 🐧");
+        return;
+      }
+
+      const dataObj = new Date(data + "T00:00:00");
+      const dataFormatada = dataObj.toLocaleDateString("pt-BR", {
+        weekday: "long", day: "2-digit", month: "long", year: "numeric"
+      });
+
+      let msg = `🐧 *HOSPITAL DO PINGO* — Novo agendamento!\n\n`;
+      msg += `📋 *Tipo:* ${tipo}\n`;
+      msg += `${emojiEscolhido} *Paciente:* ${nomePelucia}\n`;
+      msg += `👤 *Responsável:* ${nomeResponsavel}\n`;
+      if (telefone) msg += `📱 *WhatsApp:* ${telefone}\n`;
+      msg += `📅 *Data:* ${dataFormatada}\n`;
+      msg += `⏰ *Horário:* ${hora}\n`;
+      if (motivo) msg += `📝 *Motivo:* ${motivo}\n`;
+      if (observacoes) msg += `💬 *Obs:* ${observacoes}\n`;
+      msg += `\n_Mensagem enviada pelo site do Hospital do Pingo_`;
+
+      window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+    }
+
+    // ========== SISTEMA: MARCAR CONSULTA ==========
+    function marcarConsultaSistema() {
+      const emoji = document.getElementById("sConsultaEmoji").value || "🐻";
+      const nome = document.getElementById("sConsultaNome").value.trim();
+      const tipo = document.getElementById("sConsultaTipo").value;
+      const hora = document.getElementById("sConsultaHora").value;
+      const senha = document.getElementById("sConsultaSenha").value;
+      if (!nome || !hora || !senha) { alert("Preencha tudo! 🐧"); return; }
+
+      const id = Date.now();
+      const lista = document.getElementById("listaConsultas");
+      lista.querySelector(".lista-vazia")?.remove();
+
+      const item = document.createElement("div");
+      item.className = "item";
+      item.dataset.id = id;
+      item.innerHTML = `
+        <div class="item-avatar">${emoji}</div>
+        <div class="item-info">
+          <div class="item-nome">${nome} <small style="color:#64748B">• Senha ${senha}</small></div>
+          <div class="item-desc">${hora} • ${tipo}</div>
+        </div>
+        <button class="btn btn-azul" style="padding:5px 10px;font-size:0.75rem" onclick="concluirItem(${id},'consulta')">✓ Realizada</button>
+      `;
+      lista.prepend(item);
+
+      const hoje = new Date();
+      const [h, m] = hora.split(":");
+      const dataHora = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), h, m, 0);
+
+      agenda.push({ id, tipo: "consulta", emoji, nome, descricao: tipo, hora, senha, dataHora: dataHora.getTime(), chamado: false });
+      localStorage.setItem("agendaPingo", JSON.stringify(agenda));
+      atualizarStats();
+
+      document.getElementById("sConsultaNome").value = "";
+      document.getElementById("sConsultaSenha").value = "";
+      alert(`Consulta marcada!\n${emoji} ${nome}\nSenha ${senha} às ${hora}`);
+    }
+
+    // ========== SISTEMA: MARCAR CIRURGIA ==========
+    function marcarCirurgiaSistema() {
+      const emoji = document.getElementById("sCirurgiaEmoji").value || "🐰";
+      const nome = document.getElementById("sCirurgiaNome").value.trim();
+      const tipo = document.getElementById("sCirurgiaTipo").value;
+      const data = document.getElementById("sCirurgiaData").value;
+      const hora = document.getElementById("sCirurgiaHora").value;
+      const sala = document.getElementById("sCirurgiaSala").value;
+      const senha = document.getElementById("sCirurgiaSenha").value;
+      if (!nome || !data || !hora || !senha) { alert("Preencha tudo! 🐧"); return; }
+
+      const id = Date.now();
+      const dataObj = new Date(data + "T00:00:00");
+      const dataFormatada = dataObj.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+      const ehHoje = data === new Date().toISOString().slice(0, 10);
+
+      const lista = document.getElementById(ehHoje ? "listaCirurgiasHoje" : "listaCirurgiasAgendadas");
+      lista.querySelector(".lista-vazia")?.remove();
+
+      const item = document.createElement("div");
+      item.className = "item";
+      item.dataset.id = id;
+      item.innerHTML = `
+        <div class="item-avatar">${emoji}</div>
+        <div class="item-info">
+          <div class="item-nome">${nome} <small style="color:#64748B">• Senha ${senha}</small></div>
+          <div class="item-desc">${ehHoje ? hora : dataFormatada + " " + hora} • ${tipo} • ${sala}</div>
+        </div>
+        <button class="btn btn-vermelho" style="padding:5px 10px;font-size:0.75rem" onclick="concluirItem(${id},'cirurgia')">✓ Realizada</button>
+      `;
+      lista.prepend(item);
+
+      const [h, m] = hora.split(":");
+      const dataHora = new Date(dataObj.getFullYear(), dataObj.getMonth(), dataObj.getDate(), h, m, 0);
+
+      agenda.push({ id, tipo: "cirurgia", emoji, nome, descricao: tipo, hora, sala, senha, dataHora: dataHora.getTime(), chamado: false });
+      localStorage.setItem("agendaPingo", JSON.stringify(agenda));
+      atualizarStats();
+
+      document.getElementById("sCirurgiaNome").value = "";
+      document.getElementById("sCirurgiaSenha").value = "";
+      alert(`Cirurgia agendada!\n${emoji} ${nome}\nSenha ${senha}`);
+    }
+
+    function concluirItem(id, tipo) {
+      const el = document.querySelector(`.item[data-id="${id}"]`);
+      if (!el) return;
+      const emoji = el.querySelector(".item-avatar").textContent;
+      const nome = el.querySelector(".item-nome").textContent;
+      const desc = el.querySelector(".item-desc").textContent;
+      el.remove();
+
+      const dest = document.getElementById(tipo === "consulta" ? "listaConsultasRealizadas" : "listaCirurgiasRealizadas");
+      dest.querySelector(".lista-vazia")?.remove();
+      const novo = document.createElement("div");
+      novo.className = "item";
+      novo.innerHTML = `
+        <div class="item-avatar">${emoji}</div>
+        <div class="item-info">
+          <div class="item-nome">${nome}</div>
+          <div class="item-desc">${desc}</div>
+        </div>
+        <span class="badge ok">Concluída</span>
+      `;
+      dest.prepend(novo);
+
+      agenda = agenda.filter(a => a.id !== id);
+      localStorage.setItem("agendaPingo", JSON.stringify(agenda));
+      atualizarStats();
+    }
+
+    function atualizarStats() {
+      const consultas = agenda.filter(a => a.tipo === "consulta").length;
+      const cirurgias = agenda.filter(a => a.tipo === "cirurgia").length;
+      document.getElementById("statConsultas").textContent = consultas;
+      document.getElementById("statCirurgias").textContent = cirurgias;
+      document.getElementById("statPacientes").textContent = consultas + cirurgias;
+    }
+
+    // ========== CHAMADA / VOZ / PAINEL ==========
+    function tocarBarulho() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.22, ctx.currentTime + i * 0.18);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.18 + 0.35);
+          osc.start(ctx.currentTime + i * 0.18);
+          osc.stop(ctx.currentTime + i * 0.18 + 0.4);
+        });
+      } catch (e) {}
+    }
+
+    function falarSenha(item) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const texto = `Senha ${item.senha}. ${item.nome}. ${item.tipo === "cirurgia" ? "cirurgia" : "consulta"}${item.sala ? ", " + item.sala : ""}.`;
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = "pt-BR";
+      u.rate = 0.9;
+      const vozes = speechSynthesis.getVoices();
+      const pt = vozes.find(v => v.lang.startsWith("pt"));
+      if (pt) u.voice = pt;
+      speechSynthesis.speak(u);
+    }
+
+    function atualizarPainel(item) {
+      const num = document.getElementById("painelNumero");
+      num.textContent = item.senha;
+      num.classList.remove("pulse");
+      void num.offsetWidth;
+      num.classList.add("pulse");
+      document.getElementById("painelEmoji").textContent = item.emoji;
+      document.getElementById("painelNome").textContent = item.nome;
+      document.getElementById("painelTipo").textContent = (item.tipo === "cirurgia" ? "🩺 Cirurgia" : "📅 Consulta") + " • " + item.descricao;
+      document.getElementById("painelLocal").textContent = item.sala ? "🏥 " + item.sala : "📍 Recepção";
+
+      const hist = document.getElementById("historicoSenhas");
+      hist.querySelector(".lista-vazia")?.remove();
+      const h = document.createElement("div");
+      h.className = "item";
+      h.innerHTML = `
+        <div class="item-avatar">${item.emoji}</div>
+        <div class="item-info">
+          <div class="item-nome">Senha ${item.senha} — ${item.nome}</div>
+          <div class="item-desc">${item.hora} • ${item.tipo === "cirurgia" ? "Cirurgia" : "Consulta"}</div>
+        </div>
+        <span class="badge ok">Chamada</span>
+      `;
+      hist.prepend(h);
+    }
+
+    function mostrarChamada(item) {
+      atualizarPainel(item);
+      tocarBarulho();
+      setTimeout(() => falarSenha(item), 700);
+
+      // Modal só se NÃO estiver na aba de senhas
+      const estaNoPainel = document.getElementById("senhas")?.classList.contains("ativa");
+      if (!estaNoPainel) {
+        document.getElementById("modalEmoji").textContent = item.emoji;
+        document.getElementById("modalTitulo").textContent = item.tipo === "cirurgia" ? "Hora da Cirurgia! 🩺" : "Hora da Consulta! 📅";
+        document.getElementById("modalNome").textContent = item.nome + "  •  Senha " + item.senha;
+        document.getElementById("modalTipo").textContent = item.descricao + (item.sala ? " • " + item.sala : "");
+        document.getElementById("modalHorario").textContent = item.hora;
+        document.getElementById("modalChamada").classList.add("aberto");
+      }
+    }
+
+    function fecharModal() {
+      document.getElementById("modalChamada").classList.remove("aberto");
+    }
+
+    function verificarHorarios() {
+      const agora = Date.now();
+      agenda.forEach(item => {
+        if (!item.chamado && item.dataHora <= agora && item.dataHora > agora - 90000) {
+          item.chamado = true;
+          localStorage.setItem("agendaPingo", JSON.stringify(agenda));
+          mostrarChamada(item);
+        }
+      });
+    }
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.getVoices();
+    }
+  </script>
+</body>
+</html>
